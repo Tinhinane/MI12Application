@@ -30,43 +30,4 @@ public class SecondActivity extends AppCompatActivity {
                 array_list);
         lv.setAdapter(arrayAdapter);
     }
-
-    
-    /*
-        public void printMap(HashMap<String, BleDevice> mapDevices){
-            // Get a set of the entries
-            Set set = hm.entrySet();
-            // Get an iterator
-            Iterator i = set.iterator();
-
-            // Display elements
-            while(i.hasNext()) {
-                Map.Entry me = (Map.Entry)i.next();
-                System.out.print(me.getKey() + ": ");
-                System.out.println(me.getValue());
-            }
-            System.out.println();
-        }*/
-    /*public void handleClick(MainActivity mainActivity, HashMap<String, BleDevice> mapDevices){
-        Log.i("TAG Second", "kwakwakwa!");
-        listBleDevices = new ArrayList<String>();
-        // Get a set of the entries
-        Set set = mapDevices.entrySet();
-        // Get an iterator
-        Iterator i = set.iterator();
-
-
-        // Display elements
-        while(i.hasNext()) {
-            Map.Entry me = (Map.Entry)i.next();
-            BleDevice bleDevice = (BleDevice) me.getValue();
-            listBleDevices.add(bleDevice.getmDeviceCode());
-            Log.i("device received", me.getValue().toString());
-
-        }
-        if(listBleDevices.size()>0){
-            printListToActivity(listBleDevices);
-        }
-    }*/
-
 }

@@ -37,22 +37,20 @@ public class MainActivity extends AppCompatActivity {
     private Handler mHandler;
     private HashMap<String, BleDevice> foundDevices = new HashMap<String, BleDevice>();
     private List<String> listBleDevices = new ArrayList<String>();
-
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
+    private static final long SCAN_PERIOD = 10000;// Stops scanning after 10 seconds.
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private LocationManager lm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.i("TAG", "MI12 app is starting up");
+        Log.i("TAG onCreate", "MI12 app is starting up");
         lm = (LocationManager) getSystemService(LOCATION_SERVICE);
-        //Get user permission to get location access
+        //Get user permission grant
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                Log.i("TAG", "needs permission grant");
                 builder.setTitle("This app needs location access");
                 builder.setMessage("Please grant location access so this app can detect beacons.");
                 builder.setPositiveButton(android.R.string.ok, null);
@@ -63,13 +61,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 builder.show();
-                Log.i("TAG", "needs permission grant");
             }
         }
 
-        activateLocation();//enable gps
+        activateLocation();//Enable location
         getBluetoothAdapter();//Get mBluetoothAdapter
-
 
         final Button button = findViewById(R.id.btnDevices);
         button.setOnClickListener(new View.OnClickListener() {
@@ -89,13 +85,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
         if(isBluetoothEnabled(mBluetoothAdapter) && lm.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-            Log.i("On Resume location: ", lm.isProviderEnabled(LocationManager.GPS_PROVIDER)+" test");
-            Log.i("OnResume", "True, I'm going to scan");
+            //If bluetooth and location are both enabled, start scanning
             scanLeDevice(true);
         }
         super.onResume();
     }
 
+    //Ask the user to turn on location
     private void activateLocation(){
         if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             // Build the alert dialog
@@ -115,8 +111,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //The BluetoothAdapter is required for any Bluetooth activity.
-    //The BluetoothAdapter represents the phone's own Bluetooth adapter.
+
+    //Get the phone's own Bluetooth adapter, which is required for any Bluetooth activity.
     private BluetoothAdapter getBluetoothAdapter() {
         if (mBluetoothAdapter == null) {
             // Initializes Bluetooth adapter.
@@ -127,26 +123,27 @@ public class MainActivity extends AppCompatActivity {
         return mBluetoothAdapter;
     }
 
-    //Is the phone's bluetooth on, off?
+    //Check phone's bluetooth
     public boolean isBluetoothEnabled(BluetoothAdapter bluetoothAdapter) {
         if(bluetoothAdapter == null || !bluetoothAdapter.isEnabled()){
-            Log.i("UtilsTag", "Bluetooth Off");
+            //Bluetooth is off
+            //Ask user to turn on bluetooth if off
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            Log.i("Check bluetooth: ", bluetoothAdapter.isEnabled() + "test");
             return false;
         }
         else{
-            Log.i("UtilsTag", "Bluetooth On");
+            //Bluetooth is on
             return true;
         }
     }
 
+    //Scan if bluetooth is enabled
     private void scanLeDevice(boolean enable) {
 
         mHandler = new Handler();
         if (enable) {
-            //Stop scanning after a pre_defined period: 10000
+            //Stop scanning after a pre-defined period
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -161,30 +158,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             String deviceName = result.getDevice().toString();
-            //BluetoothDevice btDevice = result.getDevice();
-            BleDevice device = new BleDevice(result.getRssi(), result.getScanRecord().getTxPowerLevel(), deviceName);
+            //Log.i("Tag records" , result.getScanRecord().toString());
+            //From scan records, we see that TxPower = -50 (last byte in the packet).
+            //The value was checked on another application, it was 0xCE => -50 dBm
+            BleDevice device = new BleDevice(result.getRssi(), -59, deviceName);
             if (!foundDevices.containsKey(deviceName)) {
+                //new device found
                 foundDevices.put(deviceName,device);
-                Log.i("Tag Add", "New Device Found");
             }else{
+                //update device already found
                 (foundDevices.get(deviceName)).setmRssi(result.getRssi());
-                (foundDevices.get(deviceName)).setmTxPower(result.getScanRecord().getTxPowerLevel());
-                Log.i("Tag Update", "Update device already found");
             }
-            //connectToDevice(btDevice);
         }
-
-        /*@Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            for (ScanResult sr : results) {
-                Log.i("ScanResult - Results", sr.toString());
-            }
-        }*/
 
         @Override
         public void onScanFailed(int errorCode) {
@@ -192,9 +181,10 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    //Go to second activity
+    //Fill in the list of ble devices found
     public List<String> showListDevices(){
-
+        //Beacons used: CA:29:A7:B8:6E:02,F0:F9:90:D8:07:02
+        listBleDevices.clear();
         // Get a set of the entries
         Set set = foundDevices.entrySet();
         // Get an iterator
@@ -204,16 +194,34 @@ public class MainActivity extends AppCompatActivity {
         while(i.hasNext()) {
             Map.Entry me = (Map.Entry)i.next();
             BleDevice bleDevice = (BleDevice) me.getValue();
-            listBleDevices.add(bleDevice.toString());
-            Log.i("device received", me.getValue().toString());
+            if(bleDevice.getmDeviceCode().equals("F0:F9:90:D8:07:02") || bleDevice.getmDeviceCode().equals("CA:29:A7:B8:6E:02")){
+                double d = calculateDistance(bleDevice.getmTxPower(), bleDevice.getmRssi());
+                Log.i("tag distance:", d+"");
+                listBleDevices.add(bleDevice.toString());
+            }
+            else{
+                //Don't add to the list
+            }
+            Log.i("device scanned", me.getValue().toString());
         }
         return listBleDevices;
     }
 
-    public HashMap<String, BleDevice> getMap(){
-            return foundDevices;
+    public double calculateDistance(int txPower, int rssi){
+        /*int N = 2;
+        Log.i("tag distance:", Math.pow(10, ((txPower-rssi)/(10*N)))+"");
+        return Math.pow(10, ((txPower-rssi)/(10*N)));*/
+        if (rssi == 0) {
+            return -1.0; // if we cannot determine distance, return -1.
+        }
+
+        double ratio = rssi*1.0/txPower;
+        if (ratio < 1.0) {
+            return Math.pow(ratio,10);
+        }
+        else {
+            double d =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
+            return d;
+        }
     }
-
-
-
 }

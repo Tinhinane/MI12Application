@@ -7,10 +7,10 @@ package com.example.tinhinane.mi12application;
 public class BleDevice {
 
     private int mRssi;
-    private int mTxPower;
+    private double mTxPower;
     private String mDeviceCode;
 
-    public BleDevice(int rssi, int txpower, String deviceCode){
+    public BleDevice(int rssi, double txpower, String deviceCode){
         this.mTxPower = txpower;
         this.mRssi = rssi;
         this.mDeviceCode = deviceCode;
@@ -24,11 +24,11 @@ public class BleDevice {
         this.mRssi = mRssi;
     }
 
-    public int getmTxPower() {
+    public double getmTxPower() {
         return mTxPower;
     }
 
-    public void setmTxPower(int mTxPower) {
+    public void setmTxPower(double mTxPower) {
         this.mTxPower = mTxPower;
     }
 

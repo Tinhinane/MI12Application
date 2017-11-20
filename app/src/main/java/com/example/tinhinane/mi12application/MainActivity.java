@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
     private static final long SCAN_PERIOD = 10000;// Stops scanning after 10 seconds.
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private LocationManager lm;
+    private double distance_found = 0;
+    private ArrayList<Double> listDistance = new ArrayList<Double>();//save found distances (3 most recent distances)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +80,24 @@ public class MainActivity extends AppCompatActivity {
                 intent.putStringArrayListExtra("key", (ArrayList<String>) testList);
                 startActivity(intent);
             }
+        });
+
+        final Button btnMap = findViewById(R.id.btnMaps);
+        btnMap.setOnClickListener(new View.OnClickListener(){
+          @Override
+          public void onClick(View v){
+              Intent Maps = new Intent(MainActivity.this,MapsActivity.class);
+              if(distance_found !=0){
+                  listDistance.add(1.5);
+                  listDistance.add(2.5);
+                  Maps.putExtra("listDistance", listDistance);
+                  Maps.putExtra("distance_found", distance_found);
+                  startActivity(Maps);
+              }
+              else{
+                  Log.i("On Click Map", "Scan devices first");
+              }
+          }
         });
 
     }
@@ -165,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
             //Log.i("Tag records" , result.getScanRecord().toString());
             //From scan records, we see that TxPower = -50 (last byte in the packet).
             //The value was checked on another application, it was 0xCE => -50 dBm
-            BleDevice device = new BleDevice(result.getRssi(), -59, deviceName);
+            BleDevice device = new BleDevice(result.getRssi(), -69.5, deviceName);
             if (!foundDevices.containsKey(deviceName)) {
                 //new device found
                 foundDevices.put(deviceName,device);
@@ -194,34 +215,57 @@ public class MainActivity extends AppCompatActivity {
         while(i.hasNext()) {
             Map.Entry me = (Map.Entry)i.next();
             BleDevice bleDevice = (BleDevice) me.getValue();
-            if(bleDevice.getmDeviceCode().equals("F0:F9:90:D8:07:02") || bleDevice.getmDeviceCode().equals("CA:29:A7:B8:6E:02")){
-                double d = calculateDistance(bleDevice.getmTxPower(), bleDevice.getmRssi());
-                Log.i("tag distance:", d+"");
-                listBleDevices.add(bleDevice.toString());
+
+            switch(bleDevice.getmDeviceCode()) {
+                case "F0:F9:90:D8:07:02":
+                    Log.i("Tag device scanned", bleDevice.getmDeviceCode());
+                    listBleDevices.add(bleDevice.toString());//Add to list of ble scanned devices
+                    distance_found = distanceExperimental(bleDevice.getmTxPower(), bleDevice.getmRssi());
+                    break;
+                case "CA:29:A7:B8:6E:02":
+                    Log.i("Tag device scanned", bleDevice.getmDeviceCode());
+                    listBleDevices.add(bleDevice.toString());//Add to list of ble scanned devices
+                    distance_found = distanceExperimental(bleDevice.getmTxPower(), bleDevice.getmRssi());
+                    break;
+                default :
+                    Log.i("Tag device scanned", "Not an iBeacon");
             }
-            else{
-                //Don't add to the list
-            }
-            Log.i("device scanned", me.getValue().toString());
+
+
+
         }
         return listBleDevices;
     }
 
-    public double calculateDistance(int txPower, int rssi){
-        /*int N = 2;
-        Log.i("tag distance:", Math.pow(10, ((txPower-rssi)/(10*N)))+"");
-        return Math.pow(10, ((txPower-rssi)/(10*N)));*/
+    public double distanceMathematical(double txPower, int rssi){
+        /*
+        * n (environmental factor) = 2 (in free space)
+        *
+        * d = 10 ^ ((TxPower - RSSI) / (10 * n))
+        */
+        double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
+        Log.i("Tag distance (math)", distance + "");
+        return distance;
+    }
+
+    public double distanceExperimental(double txPower, int rssi){
+
         if (rssi == 0) {
             return -1.0; // if we cannot determine distance, return -1.
         }
-
+        //A regression equation is a polynomial regression equation if the power of independent variable is more than 1.
         double ratio = rssi*1.0/txPower;
         if (ratio < 1.0) {
+            Log.i("Tag distance (exp)", Math.pow(ratio,10) +"");
             return Math.pow(ratio,10);
         }
+
         else {
             double d =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
+            Log.i("Distance (exp formula)", d+"");
             return d;
         }
     }
+
+
 }

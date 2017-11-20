@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * List BLE devices.
+ */
 public class SecondActivity extends AppCompatActivity {
 
     private ListView lv;

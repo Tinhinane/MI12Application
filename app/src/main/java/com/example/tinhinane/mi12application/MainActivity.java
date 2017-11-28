@@ -23,6 +23,8 @@ import android.view.View;
 import android.widget.Button;
 
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,16 +35,14 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_ENABLE_BT = 1;
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    private static final long SCAN_PERIOD = 10000;// Stops scanning after 10 seconds
+    private Handler mHandler;
+    private LocationManager lm;
     private BluetoothLeScanner mLEScanner;
     private BluetoothAdapter mBluetoothAdapter;
-    private Handler mHandler;
-    private HashMap<String, BleDevice> foundDevices = new HashMap<String, BleDevice>();
-    private List<String> listBleDevices = new ArrayList<String>();
-    private static final long SCAN_PERIOD = 10000;// Stops scanning after 10 seconds.
-    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
-    private LocationManager lm;
-    private double distance_found = 0;
-    private ArrayList<Double> listDistance = new ArrayList<Double>();//save found distances (3 most recent distances)
+    private HashMap<String, Beacon> scannedBeacons = new HashMap<String, Beacon>();
+    private List<String> listStringBeacons = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,11 +70,12 @@ public class MainActivity extends AppCompatActivity {
         activateLocation();//Enable location
         getBluetoothAdapter();//Get mBluetoothAdapter
 
+        //OnClick listener to button "scan"
         final Button button = findViewById(R.id.btnDevices);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                List<String> testList = showListDevices();
+                List<String> testList = saveBeacons();
                 // Code here executes on main thread after user presses button
                 Intent intent = new Intent(MainActivity.this, SecondActivity.class);
                 intent.putStringArrayListExtra("key", (ArrayList<String>) testList);
@@ -82,16 +83,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //OnClick listener to button "map"
         final Button btnMap = findViewById(R.id.btnMaps);
         btnMap.setOnClickListener(new View.OnClickListener(){
           @Override
           public void onClick(View v){
               Intent Maps = new Intent(MainActivity.this,MapsActivity.class);
-              if(distance_found !=0){
-                  listDistance.add(1.5);
-                  listDistance.add(2.5);
-                  Maps.putExtra("listDistance", listDistance);
-                  Maps.putExtra("distance_found", distance_found);
+              if(!scannedBeacons.isEmpty()){
+                  Maps.putExtra("listDistance", Beacon.populateDistanceList(scannedBeacons));
                   startActivity(Maps);
               }
               else{
@@ -104,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume(){
+        Log.i("Tag onResume", "Scan");
         mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
         if(isBluetoothEnabled(mBluetoothAdapter) && lm.isProviderEnabled(LocationManager.GPS_PROVIDER)){
             //If bluetooth and location are both enabled, start scanning
@@ -132,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     //Get the phone's own Bluetooth adapter, which is required for any Bluetooth activity.
     private BluetoothAdapter getBluetoothAdapter() {
         if (mBluetoothAdapter == null) {
@@ -144,11 +143,10 @@ public class MainActivity extends AppCompatActivity {
         return mBluetoothAdapter;
     }
 
-    //Check phone's bluetooth
+    //Check if bluetooth is on
     public boolean isBluetoothEnabled(BluetoothAdapter bluetoothAdapter) {
         if(bluetoothAdapter == null || !bluetoothAdapter.isEnabled()){
-            //Bluetooth is off
-            //Ask user to turn on bluetooth if off
+            //Ask user to turn on bluetooth
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             return false;
@@ -159,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Scan if bluetooth is enabled
+    //Scan BLE devices when bluetooth is enabled
     private void scanLeDevice(boolean enable) {
 
         mHandler = new Handler();
@@ -182,17 +180,24 @@ public class MainActivity extends AppCompatActivity {
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
+
             String deviceName = result.getDevice().toString();
-            //Log.i("Tag records" , result.getScanRecord().toString());
+
             //From scan records, we see that TxPower = -50 (last byte in the packet).
-            //The value was checked on another application, it was 0xCE => -50 dBm
+            //But after some calibration, we decided to set it to 69.5
             BleDevice device = new BleDevice(result.getRssi(), -69.5, deviceName);
-            if (!foundDevices.containsKey(deviceName)) {
-                //new device found
-                foundDevices.put(deviceName,device);
+            if (!scannedBeacons.containsKey(deviceName)) {
+                //New device found
+                if(Beacon.isBeacon(device)){
+                    Beacon beacon = new Beacon(device.getmRssi(), device.getmTxPower(), device.getmDeviceCode());
+                    scannedBeacons.put(deviceName, beacon);
+                }
+
             }else{
-                //update device already found
-                (foundDevices.get(deviceName)).setmRssi(result.getRssi());
+                //Update device already found
+                (scannedBeacons.get(deviceName)).setmRssi(result.getRssi());
+                 double distance = Beacon.distanceMathematical(device.getmTxPower(), device.getmRssi());
+                (scannedBeacons.get(deviceName)).setDistance(distance);
             }
         }
 
@@ -202,70 +207,23 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    //Fill in the list of ble devices found
-    public List<String> showListDevices(){
-        //Beacons used: CA:29:A7:B8:6E:02,F0:F9:90:D8:07:02
-        listBleDevices.clear();
+    //Save only ibeacons
+    public List<String> saveBeacons(){
+
+        listStringBeacons.clear();
         // Get a set of the entries
-        Set set = foundDevices.entrySet();
+        Set set = scannedBeacons.entrySet();
         // Get an iterator
         Iterator i = set.iterator();
 
-        // Display elements
+        // loop and save only beacons
         while(i.hasNext()) {
             Map.Entry me = (Map.Entry)i.next();
-            BleDevice bleDevice = (BleDevice) me.getValue();
-
-            switch(bleDevice.getmDeviceCode()) {
-                case "F0:F9:90:D8:07:02":
-                    Log.i("Tag device scanned", bleDevice.getmDeviceCode());
-                    listBleDevices.add(bleDevice.toString());//Add to list of ble scanned devices
-                    distance_found = distanceExperimental(bleDevice.getmTxPower(), bleDevice.getmRssi());
-                    break;
-                case "CA:29:A7:B8:6E:02":
-                    Log.i("Tag device scanned", bleDevice.getmDeviceCode());
-                    listBleDevices.add(bleDevice.toString());//Add to list of ble scanned devices
-                    distance_found = distanceExperimental(bleDevice.getmTxPower(), bleDevice.getmRssi());
-                    break;
-                default :
-                    Log.i("Tag device scanned", "Not an iBeacon");
-            }
-
-
+            Beacon beacon = (Beacon) me.getValue();
+            listStringBeacons.add(beacon.toString());
 
         }
-        return listBleDevices;
+        return listStringBeacons;
     }
-
-    public double distanceMathematical(double txPower, int rssi){
-        /*
-        * n (environmental factor) = 2 (in free space)
-        *
-        * d = 10 ^ ((TxPower - RSSI) / (10 * n))
-        */
-        double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
-        Log.i("Tag distance (math)", distance + "");
-        return distance;
-    }
-
-    public double distanceExperimental(double txPower, int rssi){
-
-        if (rssi == 0) {
-            return -1.0; // if we cannot determine distance, return -1.
-        }
-        //A regression equation is a polynomial regression equation if the power of independent variable is more than 1.
-        double ratio = rssi*1.0/txPower;
-        if (ratio < 1.0) {
-            Log.i("Tag distance (exp)", Math.pow(ratio,10) +"");
-            return Math.pow(ratio,10);
-        }
-
-        else {
-            double d =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
-            Log.i("Distance (exp formula)", d+"");
-            return d;
-        }
-    }
-
 
 }

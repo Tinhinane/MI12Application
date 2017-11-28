@@ -26,12 +26,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         Log.i("tag maps activity", "Maps Activity created");
-        double distance_ = getIntent().getDoubleExtra("distance_found", 0);
-        //Log.i("tag distance (map)", distance_ +"");
 
         //Retrieve array double
         ArrayList<Double> listDouble = (ArrayList<Double>) getIntent().getSerializableExtra("listDistance");
-        //Log.i("tag distance (test)", listDouble.toString());
+        Log.i("Tag distance (test)", listDouble.toString());
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -56,11 +54,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Vector mypos = findPosition(v1, v2, v3, 438.37, 641.66,285.17);
         // Todo : test once the right lat value is found
-        /*LatLng test = CartesianToGeographic(mypos);
+        LatLng test = CartesianToGeographic(mypos);
         Log.i("tag user (cart)", mypos.toString());
         Log.i("tag user (geo)", test.toString());
         mMap.addMarker(new MarkerOptions().position(test).title("Marker in user position"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(test));*/
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(test));
     }
 
     double Deg2Rad(double deg) { return deg*Math.PI/180; }
@@ -87,12 +85,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public LatLng CartesianToGeographic(Vector p){
 
-        // TODO: use iterative way to find lat
-        // double lat = Rad2Deg(Math.asin((p.z/earth_r)));
+        double earth_r = 6371;
 
+        double lat = Rad2Deg(Math.asin(p.z/(earth_r*1000)));
         double lon = Rad2Deg(Math.atan2(p.y, p.x));//this is correct
 
-        return null;
+        return new LatLng(lat, lon);
     }
 
     //Trilateration algorithm, maths source: https://en.wikipedia.org/wiki/Trilateration

@@ -25,9 +25,10 @@ public class SecondActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
-        Log.i("Second Tag", "Second Activity");
+        Log.i("Tag SECOND", "Second Activity");
         lv = (ListView) findViewById(R.id.foundDevicesList);
         ArrayList<String> array_list = getIntent().getStringArrayListExtra("key");
+        Log.i("tag list rec", array_list.toString());
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1,
                 array_list);

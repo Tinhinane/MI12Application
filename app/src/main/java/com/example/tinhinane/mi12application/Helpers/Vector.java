@@ -1,4 +1,4 @@
-package com.example.tinhinane.mi12application;
+package com.example.tinhinane.mi12application.Helpers;
 
 /**
  * Created by tinhinane on 20/11/17.

@@ -1,4 +1,4 @@
-package com.example.tinhinane.mi12application;
+package com.example.tinhinane.mi12application.Models;
 
 import com.google.android.gms.maps.model.LatLng;
 

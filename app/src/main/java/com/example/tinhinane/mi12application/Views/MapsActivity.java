@@ -1,9 +1,11 @@
-package com.example.tinhinane.mi12application;
+package com.example.tinhinane.mi12application.Views;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.tinhinane.mi12application.R;
+import com.example.tinhinane.mi12application.Helpers.Vector;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;

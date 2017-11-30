@@ -1,4 +1,4 @@
-package com.example.tinhinane.mi12application;
+package com.example.tinhinane.mi12application.Views;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+
+import com.example.tinhinane.mi12application.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;

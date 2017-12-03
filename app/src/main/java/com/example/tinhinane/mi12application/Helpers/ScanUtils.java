@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
 /**
  * Created by tinhinane on 30/11/17.
@@ -29,28 +30,32 @@ public class ScanUtils {
     private static BluetoothLeScanner mLEScanner;
     public static HashMap<String, Beacon> scannedBeacons = new HashMap<String, Beacon>();
     public static List<String> listStringBeacons = new ArrayList<String>();
+    public static List<Beacon> listBeacons = new ArrayList<Beacon>();
 
     //Scan BLE devices when bluetooth is enabled
     public static void scanLeDevice(Context context) {
         if (LocationHelper.isLocationEnabled(context)&& BluetoothHelper.isBluetoothEnabled(context)){
             mLEScanner = BluetoothHelper.mBluetoothAdapter.getBluetoothLeScanner();
             mHandler = new Handler();
-            if (true) {
-                //Stop scanning after a pre-defined period
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mLEScanner.stopScan(mScanCallback);
-                    }
-                }, SCAN_PERIOD);
 
+            //Stop scanning after a pre-defined period
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Log.i("Tag Scan End","ok");
+                    mLEScanner.stopScan(mScanCallback);
+                }
+            }, SCAN_PERIOD);
+            Log.i("Tag Scan start","ok");
                 mLEScanner.startScan(mScanCallback);
-            }
-            else{
-                mLEScanner.stopScan(mScanCallback);
-            }
+
         }
 
+        else{
+
+            Log.i("Tag Scan End","ok2");
+            mLEScanner.stopScan(mScanCallback);
+        }
     }
 
     private static ScanCallback mScanCallback = new ScanCallback() {
@@ -100,6 +105,23 @@ public class ScanUtils {
 
         }
         return listStringBeacons;
+    }
+
+    public static List<Beacon> getListBeacons(){
+        listBeacons.clear();
+        // Get a set of the entries
+        Set set = scannedBeacons.entrySet();
+        // Get an iterator
+        Iterator i = set.iterator();
+
+        // loop and save only beacons
+        while(i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            Beacon beacon = (Beacon) me.getValue();
+            listBeacons.add(beacon);
+
+        }
+        return listBeacons;
     }
 
 }

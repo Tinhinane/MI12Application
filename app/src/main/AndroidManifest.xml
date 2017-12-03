@@ -42,7 +42,12 @@
 
         <activity
             android:name=".Views.MapsActivity"
-            android:label="@string/title_activity_maps"></activity>
+            android:label="@string/title_activity_maps" />
+        <activity
+            android:name=".Views.CustomizedMap"
+            android:label="@string/title_activity_customized_map"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".Views.BasicMap"></activity>
     </application>
 
 </manifest>

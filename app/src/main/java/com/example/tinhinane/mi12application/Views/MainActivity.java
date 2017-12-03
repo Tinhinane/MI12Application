@@ -39,10 +39,9 @@ public class MainActivity extends AppCompatActivity {
         final Switch switchLocation = findViewById(R.id.switchLocation);
 
         final Button button = findViewById(R.id.btnDevices);
-        final Button btnMap = findViewById(R.id.btnMaps);
 
         button.setEnabled(false);
-        btnMap.setEnabled(false);
+
 
         // Activate Location when the user toggles the switch button
         switchLocation.setOnClickListener(new View.OnClickListener() {
@@ -77,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 button.setEnabled(isChecked && switchLocation.isChecked());
-                btnMap.setEnabled(isChecked && switchLocation.isChecked());
             }
         });
 
@@ -85,35 +83,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 button.setEnabled(isChecked && switchBluetooth.isChecked());
-                btnMap.setEnabled(isChecked && switchBluetooth.isChecked());
             }
         });
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    ScanUtils.scanLeDevice(getApplicationContext());
-                    Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-                    intent.putStringArrayListExtra("key", (ArrayList<String>) ScanUtils.saveBeacons());
-                    startActivity(intent);
-                } catch (Exception e) {
-                    //Dialog to say there's a problem
-                }
-            }
-        });
-
-        btnMap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent Maps = new Intent(MainActivity.this,MapsActivity.class);
-                if(!ScanUtils.scannedBeacons.isEmpty()){
-                    Maps.putExtra("listDistance", Beacon.populateDistanceList(ScanUtils.scannedBeacons));
-                    startActivity(Maps);
-                }
-                else{
-                    Log.i("On Click Map", "Scan devices first");
-                }
+                Intent secondActivity = new Intent(MainActivity.this,SecondActivity.class);
+                startActivity(secondActivity);
             }
         });
 

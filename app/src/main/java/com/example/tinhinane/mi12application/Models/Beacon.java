@@ -2,6 +2,7 @@ package com.example.tinhinane.mi12application.Models;
 
 import android.util.Log;
 
+import com.example.tinhinane.mi12application.Helpers.Vector;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -17,13 +18,13 @@ import java.util.Set;
 public class Beacon extends BleDevice {
 
     private double distance;
-    private LatLng pos;
+    private Vector v;
 
 
     public Beacon(int rssi, double txpower, String deviceCode) {
         super(rssi, txpower, deviceCode);
         this.distance = distanceMathematical(txpower, rssi);
-        this.pos = initPos(deviceCode);
+        this.v = initPos(deviceCode);
     }
 
     public double getDistance() {
@@ -32,14 +33,6 @@ public class Beacon extends BleDevice {
 
     public void setDistance(double distance) {
         this.distance = distance;
-    }
-
-    public LatLng getPos() {
-        return pos;
-    }
-
-    public void setPos(LatLng pos) {
-        this.pos = pos;
     }
 
     public  static double distanceMathematical(double txPower, int rssi){
@@ -53,7 +46,7 @@ public class Beacon extends BleDevice {
         return distance;
     }
 
-    private double distanceExperimental(double txPower, int rssi){
+    public static double distanceExperimental(double txPower, int rssi){
 
         if (rssi == 0) {
             return -1.0; // if we cannot determine distance, return -1.
@@ -70,6 +63,10 @@ public class Beacon extends BleDevice {
             Log.i("Distance (exp formula)", d+"");
             return d;
         }
+    }
+
+    public Vector getPos() {
+        return v;
     }
 
     //Check if BLEDevice is a beacon
@@ -91,20 +88,20 @@ public class Beacon extends BleDevice {
         return test;
     }
 
-    public LatLng initPos(String name){
-        LatLng pos;
+    public Vector initPos(String name){
+        Vector vector;
         switch(name) {
             case "F0:F9:90:D8:07:02":
-                pos = new LatLng(49.415502, 2.819023);
+                vector = new Vector(10,10,0);
                 break;
             case "CA:29:A7:B8:6E:02":
-                pos = new LatLng(49.422074, 2.823758);
+                vector = new Vector(350,350, 0);
                 break;
             default :
-                pos = null;
+                vector = new Vector(0,0, 0);
                 Log.i("Tag device scanned", "Not an iBeacon");
         }
-        return pos;
+        return vector;
     }
 
     public static ArrayList<Double> populateDistanceList(HashMap<String, Beacon> hmBeacons){
@@ -133,7 +130,7 @@ public class Beacon extends BleDevice {
                 "RSSI = " + getmRssi() + "\n" +
                 "Tx Power = " + getmTxPower() + "\n" +
                 "Distance = " + distance + "\n" +
-                "Position = " + pos
+                "Position = " + v
                 ;
     }
 }

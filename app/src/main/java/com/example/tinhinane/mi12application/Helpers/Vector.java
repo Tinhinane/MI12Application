@@ -58,7 +58,7 @@ public class Vector {
 
     public Vector normalise() {
         double d = this.norm();
-        return new Vector(this.x/d, this.y/x, this.z/d);
+        return new Vector(this.x/d, this.y/d, this.z/d);
     }
 
     @Override

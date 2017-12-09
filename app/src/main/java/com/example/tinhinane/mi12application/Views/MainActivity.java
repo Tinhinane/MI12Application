@@ -3,8 +3,10 @@ package com.example.tinhinane.mi12application.Views;
 import android.Manifest;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
@@ -28,20 +30,19 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    private static Button bleScannerButton;
+    private static Switch switchBluetooth;
+    private static Switch switchLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        bleScannerButton = findViewById(R.id.btnDevices);
+        switchBluetooth = findViewById(R.id.switchBluetooth);
+        switchLocation = findViewById(R.id.switchLocation);
         Log.i("TAG onCreate", "MI12 app is starting up");
-
-        final Switch switchBluetooth = findViewById(R.id.switchBluetooth);
-        final Switch switchLocation = findViewById(R.id.switchLocation);
-
-        final Button button = findViewById(R.id.btnDevices);
-
-        button.setEnabled(false);
-
+        bleScannerButton.setEnabled(false);
 
         // Activate Location when the user toggles the switch button
         switchLocation.setOnClickListener(new View.OnClickListener() {
@@ -52,12 +53,14 @@ public class MainActivity extends AppCompatActivity {
                     activateLocation();
                 }
                 else {
-                    //Todo :disable Location if permission not granted
-                    // Todo:toggle to unchecked using also onresume
-                    // activateLocation();
+                    desactivateLocation();
                 }
             }
         });
+        //Activate Location switch when the gps is already on
+        if(LocationHelper.isLocationEnabled(this) == true){
+            switchLocation.setChecked(true);
+        }
 
         // Activate Bluetooth when the user toggles the switch button
         switchBluetooth.setOnClickListener(new View.OnClickListener() {
@@ -66,27 +69,35 @@ public class MainActivity extends AppCompatActivity {
                 if (switchBluetooth.isChecked()) {
                     activateBluetooth();
                 } else {
-                    activateBluetooth();
+                    desactivateBluetooth();
                 }
             }
         });
+        //Activate Bluetooth switch when the bluetooth is already on
+        if(BluetoothHelper.getBluetoothAdapter(this).isEnabled()){
+            switchBluetooth.setChecked(true);
+        }
 
-        // The buttons of the map and the devices are activated as the bluetooth and the location are enabled
+        //The BLE Scanner button is activated when both the bluetooth and the location are enabled
         switchBluetooth.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                button.setEnabled(isChecked && switchLocation.isChecked());
+                bleScannerButton.setEnabled(isChecked && switchLocation.isChecked());
             }
         });
-
         switchLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                button.setEnabled(isChecked && switchBluetooth.isChecked());
+                bleScannerButton.setEnabled(isChecked && switchBluetooth.isChecked());
             }
         });
+        //If both bluetooth and gps are on then enable BLE Scanner button
+        if(LocationHelper.isLocationEnabled(this) && BluetoothHelper.getBluetoothAdapter(this).isEnabled()){
+            bleScannerButton.setEnabled(true);
+        }
 
-        button.setOnClickListener(new View.OnClickListener() {
+        //Go to BLE Scanner
+        bleScannerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent secondActivity = new Intent(MainActivity.this,SecondActivity.class);
@@ -96,6 +107,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Activate Bluetooth switch when the bluetooth is already on
+        switchBluetooth.setChecked(BluetoothHelper.getBluetoothAdapter(this).isEnabled());
+        switchLocation.setChecked(LocationHelper.isLocationEnabled(this));
+        bleScannerButton.setEnabled(switchBluetooth.isChecked() && switchLocation.isChecked());
+        // Register for broadcasts on BluetoothAdapter state change
+        //IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        //registerReceiver(BluetoothHelper.mBluetoothReceiver, filter);
+    }
 
     private void grantPermission(){
         if (!LocationHelper.isLocationPermissionGranted(this)){
@@ -130,7 +152,14 @@ public class MainActivity extends AppCompatActivity {
             alertDialog.setCanceledOnTouchOutside(false);
             alertDialog.show();
         }
-        //Todo Else
+
+    }
+
+    private void desactivateLocation() {
+        if (LocationHelper.isLocationEnabled(this)) {
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        }
     }
 
     private void activateBluetooth() {
@@ -138,7 +167,20 @@ public class MainActivity extends AppCompatActivity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
-        //Todo Else
+
+    }
+    private void desactivateBluetooth() {
+        if (BluetoothHelper.isBluetoothEnabled(this)) {
+                BluetoothHelper.desactivate();
+        }
+    }
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        switchBluetooth.setChecked(BluetoothHelper.getBluetoothAdapter(this).isEnabled());
+        switchLocation.setChecked(LocationHelper.isLocationEnabled(this));
+        bleScannerButton.setEnabled(switchBluetooth.isChecked() && switchLocation.isChecked());
+
     }
 
 }

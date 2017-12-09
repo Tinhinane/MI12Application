@@ -2,7 +2,9 @@ package com.example.tinhinane.mi12application.Helpers;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 
 /**
  * Created by tinhinane on 30/11/17.
@@ -11,7 +13,7 @@ import android.content.Context;
 public class BluetoothHelper {
     public static BluetoothAdapter mBluetoothAdapter;
 
-    private static BluetoothAdapter getBluetoothAdapter(Context context) {
+    public static BluetoothAdapter getBluetoothAdapter(Context context) {
 
         if (mBluetoothAdapter == null) {
             // Initializes Bluetooth adapter.
@@ -29,5 +31,9 @@ public class BluetoothHelper {
         }
         return true;
     }
+    public static boolean desactivate(){
+        return mBluetoothAdapter.disable();
+    }
+
 }
 

@@ -8,17 +8,17 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class BleDevice {
 
-    private int mRssi;
+    private double mRssi;
     private double mTxPower;
     private String mDeviceCode;
 
-    public BleDevice(int rssi, double txpower, String deviceCode){
+    public BleDevice(double rssi, double txpower, String deviceCode){
         this.mTxPower = txpower;
         this.mRssi = rssi;
         this.mDeviceCode = deviceCode;
     }
 
-    public int getmRssi() {
+    public double getmRssi() {
         return mRssi;
     }
 

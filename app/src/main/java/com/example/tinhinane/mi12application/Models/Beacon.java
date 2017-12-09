@@ -2,6 +2,7 @@ package com.example.tinhinane.mi12application.Models;
 
 import android.util.Log;
 
+import com.example.tinhinane.mi12application.Helpers.KalmanFilter;
 import com.example.tinhinane.mi12application.Helpers.Vector;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -18,13 +19,16 @@ import java.util.Set;
 public class Beacon extends BleDevice {
 
     private double distance;
-    private Vector v;
+    private Vector position;
+    private double filteredRssi;
+    static final String[] beaconIDs = {"F0:F9:90:D8:07:02", "CA:29:A7:B8:6E:02"};
 
-
-    public Beacon(int rssi, double txpower, String deviceCode) {
+    public Beacon(double rssi, double txpower, String deviceCode) {
         super(rssi, txpower, deviceCode);
-        this.distance = distanceMathematical(txpower, rssi);
-        this.v = initPos(deviceCode);
+        this.filteredRssi = setFilteredRssi(rssi);
+        this.distance = distanceMathematical(txpower, getFilteredRssi());
+        this.position = initPos(deviceCode);
+
     }
 
     public double getDistance() {
@@ -35,7 +39,17 @@ public class Beacon extends BleDevice {
         this.distance = distance;
     }
 
-    public  static double distanceMathematical(double txPower, int rssi){
+    //Filtered RSSI
+    public double getFilteredRssi(){
+        return this.filteredRssi;
+    }
+
+    public double setFilteredRssi(double rssi){
+        KalmanFilter kf = new KalmanFilter();
+        return kf.applyFilter(rssi);
+    }
+
+    public static double distanceMathematical(double txPower, double rssi){
         /*
         * n (environmental factor) = 2 (in free space)
         *
@@ -66,42 +80,53 @@ public class Beacon extends BleDevice {
     }
 
     public Vector getPos() {
-        return v;
+        return position;
     }
 
     //Check if BLEDevice is a beacon
     public static boolean isBeacon(BleDevice device){
-
+        //Note: Do not use switch expression
         boolean test;
-        switch(device.getmDeviceCode()) {
-            case "F0:F9:90:D8:07:02":
-                test = true;
-                break;
-            case "CA:29:A7:B8:6E:02":
-                test = true;
-                break;
-            default :
-                test = false;
-                Log.i("Tag device scanned", "Not an iBeacon");
+        if (device.getmDeviceCode().equals(beaconIDs[0])) {
+            test = true;
+
+        } else if (device.getmDeviceCode().equals(beaconIDs[1])) {
+            test = true;
+
+        } else {
+            test = false;
+            Log.i("Tag device scanned", "Not an iBeacon");
         }
 
         return test;
     }
 
-    public Vector initPos(String name){
+    private Vector initPos(String name){
         Vector vector;
-        switch(name) {
-            case "F0:F9:90:D8:07:02":
-                vector = new Vector(10,10,0);
-                break;
-            case "CA:29:A7:B8:6E:02":
-                vector = new Vector(350,350, 0);
-                break;
-            default :
-                vector = new Vector(0,0, 0);
-                Log.i("Tag device scanned", "Not an iBeacon");
+        if (name.equals(beaconIDs[0])) {
+            vector = new Vector(10, 10, 0);
+
+        } else if (name.equals(beaconIDs[1])) {
+            vector = new Vector(350, 350, 0);
+
+        } else {
+            vector = new Vector(0, 0, 0);
+            Log.i("Tag device scanned", "Not an iBeacon");
         }
         return vector;
+    }
+
+    public static int proximityZone(Beacon b){
+
+        if(b.getDistance() < 1){
+            return 0; //Immediate zone
+        }
+        else if(b.getDistance()>1 && b.getDistance() <3){
+            return 1; //Near zone
+        }
+        else{
+            return 2; //Far zone
+        }
     }
 
     public static ArrayList<Double> populateDistanceList(HashMap<String, Beacon> hmBeacons){
@@ -130,7 +155,7 @@ public class Beacon extends BleDevice {
                 "RSSI = " + getmRssi() + "\n" +
                 "Tx Power = " + getmTxPower() + "\n" +
                 "Distance = " + distance + "\n" +
-                "Position = " + v
+                "Position = " + position
                 ;
     }
 }

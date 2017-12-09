@@ -16,25 +16,25 @@ import java.util.ArrayList;
  * Created by tinhinane on 02/12/17.
  */
 
-public class Drawing extends View {
+public class RoomDrawing extends View {
     //Origin coordinates: O(LEFT,TOP)
 
-    int LEFT  =0;
-    int TOP  =0;
-    int RIGHT  =700;
-    int BOTTOM  =700;
+    int LEFT=0;
+    int TOP=0;
+    int RIGHT=520;
+    int BOTTOM=1150;
     Paint paint = new Paint();
     Rect r = new Rect(LEFT, TOP, RIGHT, BOTTOM);
-    public Canvas canvas_;
     ArrayList<Vector> positions = new ArrayList<Vector>();
     Vector userPos;
-    public Drawing(Context context, ArrayList<Beacon> beacons, Vector userPos) {
+    public RoomDrawing(Context context, ArrayList<Beacon> beacons, Vector userPos) {
         super(context);
         for (Beacon beacon : beacons){
             positions.add(beacon.getPos());
         }
         this.userPos = userPos;
     }
+
 
     @Override
     public void onDraw(Canvas canvas) {

@@ -1,19 +1,14 @@
 package com.example.tinhinane.mi12application.Views;
 
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.example.tinhinane.mi12application.Helpers.Drawing;
+import com.example.tinhinane.mi12application.Helpers.RoomDrawing;
 import com.example.tinhinane.mi12application.Helpers.MapHelper;
 import com.example.tinhinane.mi12application.Helpers.ScanUtils;
 import com.example.tinhinane.mi12application.Helpers.Vector;
 import com.example.tinhinane.mi12application.Models.Beacon;
-import com.example.tinhinane.mi12application.R;
 
 import java.util.ArrayList;
 
@@ -35,7 +30,7 @@ public class BasicMap extends AppCompatActivity{
 //                8.48,
 //                6.08);
         Log.i("Tag user pos", userPos.toString());
-        setContentView(new Drawing(this, beacons, userPos));
+        setContentView(new RoomDrawing(this, beacons, userPos));
     }
 
 }

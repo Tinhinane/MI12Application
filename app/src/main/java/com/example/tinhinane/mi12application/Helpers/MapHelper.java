@@ -10,6 +10,7 @@ public class MapHelper {
     public static double scaleConvert(double d){
         return d*scale;
     }
+
     //Trilateration algorithm, maths source: https://en.wikipedia.org/wiki/Trilateration
     //v1, v2, v3 in FrameCanvas, d1, d2, d3 are also in the scale of FrameCanvas
     public static Vector findPosition(Vector v1, Vector v2, Vector v3, double d1, double d2, double d3){
@@ -21,19 +22,15 @@ public class MapHelper {
         Vector iex = ex.multiply(i);
         Vector temp = Vector.substract(Vector.substract(v3, v1), iex);
         Vector ey = temp.normalise();
-        Vector ez = Vector.cross(ex, ey);
         double d = Vector.substract(v2, v1).norm();
         double j = Vector.dot(ey, Vector.substract(v3, v1));
 
         double x = (Math.pow(d1, 2) - Math.pow(d2, 2) + Math.pow(d, 2)) / (2*d);
         double y = ((Math.pow(d1, 2) - Math.pow(d3, 2) + Math.pow(i, 2) + Math.pow(j, 2))/(2*j)) - ((i/j)*x);
 
-        //double z = Math.sqrt(Math.abs(Math.pow(d1,2)-Math.pow(x,2)-Math.pow(y,2)));
-
         Vector tmp_x = ex.multiply(x);
         tmp_x = Vector.sum(tmp_x, v1);
         Vector tmp_y = ey.multiply(y);
-        //Vector tmp_z = ez.multiply(z);
 
         Vector pos = Vector.sum(tmp_x, tmp_y);
         pos = Vector.sum(pos, new Vector(0, 0, 0));

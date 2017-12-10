@@ -15,6 +15,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.tinhinane.mi12application.Helpers.ScanUtils;
+import com.example.tinhinane.mi12application.Models.Beacon;
 import com.example.tinhinane.mi12application.R;
 
 import java.util.ArrayList;
@@ -31,9 +32,9 @@ public class SecondActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
         Log.i("Tag SECOND", "Second Activity");
-        final ImageButton btnRefresh = findViewById(R.id.btnRefresh);
-        btnRefresh.setBackgroundColor(Color.BLUE);
+        final Button btnRefresh = findViewById(R.id.btnRefresh);
         final Button btnMap = findViewById(R.id.btnMap);
+        btnMap.setEnabled(false);
         final Button btnProximity = findViewById(R.id.btnProximity);
 
         final Toast toast = Toast.makeText(getApplicationContext(), "Please wait while scanning beacons in the area...",
@@ -45,31 +46,22 @@ public class SecondActivity extends AppCompatActivity {
             public void onClick(View v) {
                     ScanUtils.scanLeDevice(getApplicationContext());
                     lv = findViewById(R.id.foundDevicesList);
-                    /*if(ScanUtils.mScanning==false){
-                        ArrayList<String> array_list = (ArrayList<String>) ScanUtils.saveBeacons();
-                        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getApplicationContext(),
-                            android.R.layout.simple_list_item_1,
-                            array_list);
-                        lv.setAdapter(arrayAdapter);
-                    }*/
 
                 new CountDownTimer(5500, 1000) {
 
                     public void onTick(long millisUntilFinished) {
                         Log.i("seconds remaining: ", millisUntilFinished / 1000 +"");
                         btnRefresh.setEnabled(false);
-                        btnRefresh.setBackgroundColor(Color.GRAY);
                         toast.show();
                     }
 
                     public void onFinish() {
-                        ArrayList<String> array_list = (ArrayList<String>) ScanUtils.saveBeacons();
-                        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getApplicationContext(),
-                                android.R.layout.simple_list_item_1,
-                                array_list);
-                        lv.setAdapter(arrayAdapter);
+                        CustomList list = new CustomList(ScanUtils.getListBeacons(), getApplicationContext());
+                        lv.setAdapter(list);
+                        if(list.getCount()>0){
+                            btnMap.setEnabled(true);
+                        }
                         btnRefresh.setEnabled(true);
-                        btnRefresh.setBackgroundColor(Color.BLUE);
                     }
                 }.start();
 

@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.View;
 
 import com.example.tinhinane.mi12application.Models.Beacon;
@@ -18,13 +19,14 @@ import java.util.ArrayList;
 
 public class RoomDrawing extends View {
     //Origin coordinates: O(LEFT,TOP)
-
+    private static final double roomWidth = 5.20;//unit [m]
+    private static final double roomHeight = 11.50;//unit [m]
+    private static double scale = 0;
+    public static int maxHeight;//Canvas unit
+    public static int maxWidth;//Canvas unit
     int LEFT=0;
     int TOP=0;
-    int RIGHT=520;
-    int BOTTOM=1150;
     Paint paint = new Paint();
-    Rect r = new Rect(LEFT, TOP, RIGHT, BOTTOM);
     ArrayList<Vector> positions = new ArrayList<Vector>();
     Vector userPos;
     public RoomDrawing(Context context, ArrayList<Beacon> beacons, Vector userPos) {
@@ -35,18 +37,34 @@ public class RoomDrawing extends View {
         this.userPos = userPos;
     }
 
+    public static final double scaleConvert(double physicalDistance){
+        return physicalDistance*scale;
+    }
+
+    public static final void setScale(){
+        Log.i("Scale is:", Math.round(maxHeight/roomHeight)+"");
+        scale = Math.round(maxHeight/roomHeight);
+    }
 
     @Override
     public void onDraw(Canvas canvas) {
+        //Draw canvas
+        maxHeight = canvas.getHeight();
+        maxWidth = canvas.getWidth();
+        setScale();
+        canvas.translate((maxWidth/2)-(float)(scaleConvert(roomWidth)/2),0);
         super.onDraw(canvas);
-        // fill
+
+        //Fill in Rectangle
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.GRAY);
+        paint.setColor(Color.rgb(107, 128, 154));
+        Rect r = new Rect(TOP, LEFT, (int)scaleConvert(roomWidth), (int)scaleConvert(roomHeight));
         canvas.drawRect(r, paint);
 
-        // border
+        //Set rectangle border
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(10);
+        paint.setColor(Color.rgb(6, 34, 68));
         canvas.drawRect(r, paint);
 
         for (Vector v : positions){

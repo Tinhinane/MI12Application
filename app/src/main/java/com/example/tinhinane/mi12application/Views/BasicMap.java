@@ -2,6 +2,7 @@ package com.example.tinhinane.mi12application.Views;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.widget.FrameLayout;
 
@@ -19,6 +20,8 @@ public class BasicMap extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
         ArrayList<Beacon> beacons = (ArrayList<Beacon>) ScanUtils.getListBeacons();
         Log.i("Tag check", beacons.toString());
         Vector userPos = new Vector(0, MapHelper.scaleConvert(beacons.get(0).getDistance()),0);

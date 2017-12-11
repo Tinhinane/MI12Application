@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.View;
 
 import com.example.tinhinane.mi12application.Models.Beacon;
@@ -16,11 +17,13 @@ import java.util.ArrayList;
  */
 
 public class ProximityDrawing extends View {
+    public int maxHeight;
+    public int maxWidth;
     Paint paintC1 = new Paint();
     Paint paintC2 = new Paint();
     Paint paintC3 = new Paint();
     ArrayList<Beacon> beacons = new ArrayList<Beacon>();
-    Vector origin = new Vector(350, 350, 0);//2D z=0
+    Vector origin = new Vector();//2D z=0
 
     public ProximityDrawing(Context context, ArrayList<Beacon> beacons) {
         super(context);
@@ -29,29 +32,39 @@ public class ProximityDrawing extends View {
 
     @Override
     public void onDraw(Canvas canvas) {
+        //Prepare Canvas
+        maxHeight = canvas.getHeight();
+        maxWidth = canvas.getWidth();
+        origin.x = maxWidth/2;
+        origin.y = maxHeight/2;
+        origin.z = 0;
         super.onDraw(canvas);
-        paintC1.setStyle(Paint.Style.STROKE);
-        paintC1.setColor(Color.GREEN);
-        paintC1.setTextSize(20);
-        paintC2.setStyle(Paint.Style.STROKE);
-        paintC2.setColor(Color.CYAN);
-        paintC2.setTextSize(20);
-        paintC3.setStyle(Paint.Style.STROKE);
-        paintC3.setColor(Color.RED);
-        paintC3.setTextSize(20);
-        canvas.drawCircle((float)origin.x,(float)origin.y, 100,paintC1);//Immediate (less than 1m)
-        canvas.drawText("Immediate", 300, 300, paintC1);
-        canvas.drawCircle((float)origin.x,(float)origin.y, 300, paintC2);//Near ( 1<=d<3)
-        canvas.drawText("Near", 550, 450, paintC2);
-        canvas.drawCircle((float)origin.x,(float)origin.y, 600, paintC3);
-        canvas.drawText("Far", 650,650, paintC3);
+        //Draw circles
+        drawCircle(canvas, paintC1, Color.GREEN, 100, "Immediate");//Less than 1m
+        drawCircle(canvas, paintC2, Color.CYAN, 300, "Near");//Near ( 1<=d<3)
+        drawCircle(canvas, paintC3, Color.RED, (float)(maxHeight-origin.y), "Far");//Far >3m
         for(Beacon beacon: beacons){
+            Log.i("Check distance", beacon.getDistance() +" m");
             drawBeacon(canvas, beacon);
         }
     }
 
+    private  void drawCircle(Canvas canvas, Paint paint, int color, float radius, String text){
+        //Circle
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(10);
+        paint.setColor(color);
+        canvas.drawCircle((float)origin.x,(float)origin.y, radius, paint);
+        //Text
+        paint.setStrokeWidth(2);
+        paint.setTextSize(15);
+        canvas.drawText(text, (float)origin.x-50, (float)(maxHeight-origin.y)+(radius-100), paint);
+    }
+
     private void drawBeacon(Canvas canvas, Beacon b){
         int zone = Beacon.proximityZone(b);
+
+        //Distance is multiplied by 100, because every 1m represents 100units in the canvas
         if(zone == 0){
             paintC1.setStyle(Paint.Style.FILL);
             paintC1.setColor(Color.BLUE);
@@ -73,9 +86,9 @@ public class ProximityDrawing extends View {
             paintC3.setColor(Color.BLUE);
             paintC3.setTextSize(20);
             float d = (float)b.getDistance()*100;
-            if(d>650){
+            if(d>(maxHeight-origin.y)){
                 canvas.drawText(b.getmDeviceCode(),(float)origin.x+15,(float)origin.y+650, paintC3);
-                canvas.drawCircle((float)origin.x,(float)origin.y+650,15,paintC3);
+                canvas.drawCircle((float)origin.x,(float)maxHeight-10,15,paintC3);
             }
             else{
                 canvas.drawText(b.getmDeviceCode(),(float)origin.x+15,(float)origin.y+d, paintC3);

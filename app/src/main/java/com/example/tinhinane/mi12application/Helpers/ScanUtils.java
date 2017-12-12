@@ -22,18 +22,17 @@ import java.util.Set;
  */
 
 public class ScanUtils {
-    private static final long SCAN_PERIOD = 5000;// Stops scanning after 10 seconds
-    private static final double TxPower = -69.5;
+    public static final long SCAN_PERIOD = 30000;//[ms]
+    private static final double TxPower = -69.5;//[dBm]
     private static Handler mHandler;
     private static BluetoothLeScanner mLEScanner;
-    public static boolean mScanning;
     public static HashMap<String, Beacon> scannedBeacons = new HashMap<String, Beacon>();
-    public static List<String> listStringBeacons = new ArrayList<String>();
     public static List<Beacon> listBeacons = new ArrayList<Beacon>();
-
     //Scan BLE devices when bluetooth is enabled
     public static void scanLeDevice(Context context) {
+
         if (LocationHelper.isLocationEnabled(context)&& BluetoothHelper.isBluetoothEnabled(context)){
+            BluetoothHelper.mBluetoothAdapter.enable();//initialise
             mLEScanner = BluetoothHelper.mBluetoothAdapter.getBluetoothLeScanner();
             mHandler = new Handler();
 
@@ -41,17 +40,21 @@ public class ScanUtils {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Log.i("Tag Scan","Scan stop");
-                    //Scan timeout toast
+                    Log.i("Scan","Scan stop");
+                    //Calculate avg of distances found for every beacon
+                    for(Beacon b: getListBeacons()){
+                        double avgDistance = averageDistance(b);
+                        b.setDistance(avgDistance);
+                    }
                     mLEScanner.stopScan(mScanCallback);
                 }
             }, SCAN_PERIOD);
-            Log.i("Tag Scan","Scan currently");
+            Log.i("Scan","Scan (currently)");
             mLEScanner.startScan(mScanCallback);
         }
 
         else{
-            Log.i("Tag Scan End","ok2");
+            Log.i("Scan","End");
             mLEScanner.stopScan(mScanCallback);
         }
     }
@@ -68,47 +71,33 @@ public class ScanUtils {
             if (!scannedBeacons.containsKey(deviceName)) {
                 //New device found
                 if(Beacon.isBeacon(device)){
+                    Log.i("1 Tag scan result", "RSSI: " + result.getRssi() + "Device " + deviceName);
                     Beacon beacon = new Beacon(device.getmRssi(), device.getmTxPower(), device.getmDeviceCode());
+                    beacon.distanceList(beacon.getDistance());
                     scannedBeacons.put(deviceName, beacon);
                 }
 
             }else{
-                (scannedBeacons.get(deviceName)).setmRssi(result.getRssi());
-                (scannedBeacons.get(deviceName)).setFilteredRssi(result.getRssi());
-                double distance = Beacon.distanceMathematical(device.getmTxPower(), (scannedBeacons.get(deviceName)).getFilteredRssi());
-                (scannedBeacons.get(deviceName)).setDistance(distance);
+                //Todo: use filtered RSSI or not?
+                Log.i("2 Tag scan result", "RSSI: " + result.getRssi() + "Device " + deviceName);
+                Beacon b = scannedBeacons.get(deviceName);
+                b.setmRssi(result.getRssi());
+                double distance = Beacon.distanceMathematical(b.getmTxPower(), b.getmRssi());
+                b.distanceList(distance);
             }
         }
         @Override
         public void onBatchScanResults(List<ScanResult> results){
             for (ScanResult sr : results) {
-                Log.i("Tag ScanResult", sr.toString());
+                Log.i("On Batch Scan Result", sr.toString());
             }
         }
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
-            Log.e("Scan Failed", "Error Code: " + errorCode);
+            Log.e("On Scan Failed", "Error Code: " + errorCode);
         }
     };
-
-    //Save only ibeacons
-    public static List<String> saveBeacons(){
-        listStringBeacons.clear();
-        // Get a set of the entries
-        Set set = scannedBeacons.entrySet();
-        // Get an iterator
-        Iterator i = set.iterator();
-
-        // loop and save only beacons
-        while(i.hasNext()) {
-            Map.Entry me = (Map.Entry)i.next();
-            Beacon beacon = (Beacon) me.getValue();
-            listStringBeacons.add(beacon.toString());
-
-        }
-        return listStringBeacons;
-    }
 
     public static List<Beacon> getListBeacons(){
         listBeacons.clear();
@@ -125,6 +114,15 @@ public class ScanUtils {
 
         }
         return listBeacons;
+    }
+
+    public static double averageDistance(Beacon b){
+        double sum = 0;
+        Log.i("Distance list:", b.getDistanceList().toString());
+        for(double distance: b.getDistanceList()){
+            sum = sum + distance;
+        }
+        return (sum/b.getDistanceList().size());
     }
 
 }

@@ -3,10 +3,8 @@ package com.example.tinhinane.mi12application.Views;
 import android.Manifest;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
@@ -20,11 +18,7 @@ import android.widget.Switch;
 
 import com.example.tinhinane.mi12application.Helpers.BluetoothHelper;
 import com.example.tinhinane.mi12application.Helpers.LocationHelper;
-import com.example.tinhinane.mi12application.Models.Beacon;
 import com.example.tinhinane.mi12application.R;
-import com.example.tinhinane.mi12application.Helpers.ScanUtils;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        bleScannerButton = findViewById(R.id.btnDevices);
+        bleScannerButton = findViewById(R.id.btnBLEScanner);
         switchBluetooth = findViewById(R.id.switchBluetooth);
         switchLocation = findViewById(R.id.switchLocation);
         Log.i("TAG onCreate", "MI12 app is starting up");

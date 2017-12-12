@@ -28,13 +28,15 @@ public class RoomDrawing extends View {
     int TOP=0;
     Paint paint = new Paint();
     ArrayList<Vector> positions = new ArrayList<Vector>();
+    ArrayList<Double> distances = new ArrayList<Double>();
     Vector userPos;
-    public RoomDrawing(Context context, ArrayList<Beacon> beacons, Vector userPos) {
+    public RoomDrawing(Context context, ArrayList<Beacon> beacons) {
         super(context);
         for (Beacon beacon : beacons){
             positions.add(beacon.getPos());
+            distances.add(beacon.getDistance());
         }
-        this.userPos = userPos;
+
     }
 
     public static final double scaleConvert(double physicalDistance){
@@ -44,6 +46,33 @@ public class RoomDrawing extends View {
     public static final void setScale(){
         Log.i("Scale is:", Math.round(maxHeight/roomHeight)+"");
         scale = Math.round(maxHeight/roomHeight);
+    }
+
+    //Trilateration algorithm, maths source: https://en.wikipedia.org/wiki/Trilateration
+    //v1, v2, v3 in FrameCanvas, d1, d2, d3 are also in the scale of FrameCanvas
+    public static Vector findUserPosition(Vector v1, Vector v2, Vector v3, double d1, double d2, double d3){
+        d1 = scaleConvert(d1);
+        d2 = scaleConvert(d2);
+        d3 = scaleConvert(d3);
+        Vector ex = (Vector.substract(v2, v1)).normalise();
+        double i = Vector.dot(ex, Vector.substract(v3, v1));
+        Vector iex = ex.multiply(i);
+        Vector temp = Vector.substract(Vector.substract(v3, v1), iex);
+        Vector ey = temp.normalise();
+        double d = Vector.substract(v2, v1).norm();
+        double j = Vector.dot(ey, Vector.substract(v3, v1));
+
+        double x = (Math.pow(d1, 2) - Math.pow(d2, 2) + Math.pow(d, 2)) / (2*d);
+        double y = ((Math.pow(d1, 2) - Math.pow(d3, 2) + Math.pow(i, 2) + Math.pow(j, 2))/(2*j)) - ((i/j)*x);
+
+        Vector tmp_x = ex.multiply(x);
+        tmp_x = Vector.sum(tmp_x, v1);
+        Vector tmp_y = ey.multiply(y);
+
+        Vector pos = Vector.sum(tmp_x, tmp_y);
+        pos = Vector.sum(pos, new Vector(0, 0, 0));
+
+        return pos;
     }
 
     @Override
@@ -70,7 +99,8 @@ public class RoomDrawing extends View {
         for (Vector v : positions){
             drawBeacon(canvas, v);
         }
-
+        //Find user position
+        this.userPos = findUserPosition(positions.get(0), positions.get(1), positions.get(2), distances.get(0), distances.get(1), distances.get(2));
         drawUserPos(canvas, this.userPos);
     }
 

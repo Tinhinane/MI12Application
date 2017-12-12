@@ -21,14 +21,14 @@ public class Beacon extends BleDevice {
     private double distance;
     private Vector position;
     private double filteredRssi;
-    static final String[] beaconIDs = {"F0:F9:90:D8:07:02", "CA:29:A7:B8:6E:02"};
+    private ArrayList<Double> distances = new ArrayList<Double>();
+    static final String[] beaconIDs = {"F0:F9:90:D8:07:02", "CA:29:A7:B8:6E:02", "FD:99:39:12:E2:02"};
 
     public Beacon(double rssi, double txpower, String deviceCode) {
         super(rssi, txpower, deviceCode);
-        this.filteredRssi = setFilteredRssi(rssi);
-        this.distance = distanceMathematical(txpower, getFilteredRssi());
-        this.position = initPos(deviceCode);
-
+        setFilteredRssi(rssi);
+        this.distance = distanceMathematical(txpower, rssi);
+        setPosition(deviceCode);
     }
 
     public double getDistance() {
@@ -39,14 +39,35 @@ public class Beacon extends BleDevice {
         this.distance = distance;
     }
 
-    //Filtered RSSI
+    public Vector getPos() {
+        return position;
+    }
+
+    public void setPosition(String name){
+
+        if (name.equals(beaconIDs[0])) {
+            this.position = new Vector(100, 100, 0);
+
+        } else if (name.equals(beaconIDs[1])) {
+            this.position = new Vector(0, 0, 0);
+
+        } else if (name.equals(beaconIDs[2])) {
+            this.position = new Vector(350, 350, 0);
+
+        } else {
+            //Error
+            this.position = new Vector(-1, -1, -1);
+            Log.i("initPos", "Not an iBeacon");
+        }
+    }
+
     public double getFilteredRssi(){
         return this.filteredRssi;
     }
 
-    public double setFilteredRssi(double rssi){
+    public void setFilteredRssi(double rssi){
         KalmanFilter kf = new KalmanFilter();
-        return kf.applyFilter(rssi);
+        this.filteredRssi = kf.applyFilter(rssi);
     }
 
     public static double distanceMathematical(double txPower, double rssi){
@@ -55,8 +76,11 @@ public class Beacon extends BleDevice {
         *
         * d = 10 ^ ((TxPower - RSSI) / (10 * n))
         */
+        if (rssi == 0) {
+            return -1.0; // if we cannot determine distance, return -1.
+        }
         double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
-        Log.i("Tag distance (math)", distance + "");
+        Log.i("Tag distance: ", distance + "");
         return distance;
     }
 
@@ -79,13 +103,8 @@ public class Beacon extends BleDevice {
         }
     }
 
-    public Vector getPos() {
-        return position;
-    }
-
-    //Check if BLEDevice is a beacon
     public static boolean isBeacon(BleDevice device){
-        //Note: Do not use switch expression
+
         boolean test;
         if (device.getmDeviceCode().equals(beaconIDs[0])) {
             test = true;
@@ -93,27 +112,15 @@ public class Beacon extends BleDevice {
         } else if (device.getmDeviceCode().equals(beaconIDs[1])) {
             test = true;
 
+        } else if (device.getmDeviceCode().equals(beaconIDs[2])) {
+            test = true;
+
         } else {
             test = false;
-            Log.i("Tag device scanned", "Not an iBeacon");
+            Log.i("isBeacon?", "Not an iBeacon");
         }
 
         return test;
-    }
-
-    private Vector initPos(String name){
-        Vector vector;
-        if (name.equals(beaconIDs[0])) {
-            vector = new Vector(10, 10, 0);
-
-        } else if (name.equals(beaconIDs[1])) {
-            vector = new Vector(350, 350, 0);
-
-        } else {
-            vector = new Vector(0, 0, 0);
-            Log.i("Tag device scanned", "Not an iBeacon");
-        }
-        return vector;
     }
 
     public static int proximityZone(Beacon b){
@@ -129,23 +136,12 @@ public class Beacon extends BleDevice {
         }
     }
 
-    public static ArrayList<Double> populateDistanceList(HashMap<String, Beacon> hmBeacons){
+    public void distanceList(double distance){
+        this.distances.add(distance);
+    }
 
-        ArrayList<Double> listDistance = new ArrayList<Double>();
-        listDistance.clear();
-        // Get a set of the entries
-        Set set = hmBeacons.entrySet();
-        // Get an iterator
-        Iterator i = set.iterator();
-
-        // loop and save only beacons
-        while(i.hasNext()) {
-            Map.Entry me = (Map.Entry)i.next();
-            Beacon beacon = (Beacon) me.getValue();
-            listDistance.add(beacon.getDistance());
-        }
-
-        return listDistance;
+    public ArrayList<Double> getDistanceList(){
+        return this.distances;
     }
 
     @Override

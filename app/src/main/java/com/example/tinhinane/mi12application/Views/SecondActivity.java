@@ -46,11 +46,9 @@ public class SecondActivity extends AppCompatActivity {
             public void onClick(View v) {
                     ScanUtils.scanLeDevice(getApplicationContext());
                     lv = findViewById(R.id.foundDevicesList);
-
-                new CountDownTimer(5500, 1000) {
+                new CountDownTimer(ScanUtils.SCAN_PERIOD+10, 1000) {
 
                     public void onTick(long millisUntilFinished) {
-                        Log.i("seconds remaining: ", millisUntilFinished / 1000 +"");
                         btnRefresh.setEnabled(false);
                         toast.show();
                     }
@@ -80,7 +78,7 @@ public class SecondActivity extends AppCompatActivity {
         btnProximity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Go to Porximity view
+                //Go to Proximity view
                 Intent proximityActivity = new Intent(SecondActivity.this, ProximityActivity.class);
                 startActivity(proximityActivity);
             }

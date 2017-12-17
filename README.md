@@ -1,4 +1,4 @@
-##Indoor location with beacons 
+## Indoor location with beacons 
 
 This app has two main functions: 
 - Detect user proximity 

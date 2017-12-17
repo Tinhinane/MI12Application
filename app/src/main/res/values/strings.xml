@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Indoor localisation with beacons</string>
+    <string name="app_name">Indoor location with beacons</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_customized_map">CustomizedMap</string>
 

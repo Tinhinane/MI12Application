@@ -54,6 +54,7 @@ public class ScanUtils {
                         Log.i("Average RSSI", avgRSSI+"");
                         b.setDistance(avgDistance);
                         b.setmRssi((int)avgRSSI);
+                        b.clearDistances();
                     }
                     mLEScanner.stopScan(mScanCallback);
                 }

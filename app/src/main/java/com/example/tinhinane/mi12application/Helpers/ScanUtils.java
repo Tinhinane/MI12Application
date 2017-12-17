@@ -23,11 +23,12 @@ import java.util.Set;
 
 public class ScanUtils {
     public static final long SCAN_PERIOD = 30000;//[ms]
-    private static final double TxPower = -69.5;//[dBm]
+    private static final double TxPower = -55.5;//[dBm]
     private static Handler mHandler;
     private static BluetoothLeScanner mLEScanner;
     public static HashMap<String, Beacon> scannedBeacons = new HashMap<String, Beacon>();
     public static List<Beacon> listBeacons = new ArrayList<Beacon>();
+
     //Scan BLE devices when bluetooth is enabled
     public static void scanLeDevice(Context context) {
 
@@ -41,10 +42,18 @@ public class ScanUtils {
                 @Override
                 public void run() {
                     Log.i("Scan","Scan stop");
+                    //(DEBUG) Remove
+                    if(getListBeacons().size() <3){
+                        Beacon beacon = new Beacon(-70, -55.5, "CA:29:A7:B8:6E:02");
+                        scannedBeacons.put("CA:29:A7:B8:6E:02", beacon);
+                    }
                     //Calculate avg of distances found for every beacon
                     for(Beacon b: getListBeacons()){
                         double avgDistance = averageDistance(b);
+                        double avgRSSI = averageRSSI(b);
+                        Log.i("Average RSSI", avgRSSI+"");
                         b.setDistance(avgDistance);
+                        b.setmRssi((int)avgRSSI);
                     }
                     mLEScanner.stopScan(mScanCallback);
                 }
@@ -64,26 +73,24 @@ public class ScanUtils {
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
             String deviceName = result.getDevice().toString();
-
-            //From scan records, we see that TxPower = -50 (last byte in the packet).
-            //But after some calibration, we decided to set it to 69.5
             BleDevice device = new BleDevice(result.getRssi(), TxPower, deviceName);
+            //New beacon found
             if (!scannedBeacons.containsKey(deviceName)) {
-                //New device found
                 if(Beacon.isBeacon(device)){
                     Log.i("1 Tag scan result", "RSSI: " + result.getRssi() + "Device " + deviceName);
                     Beacon beacon = new Beacon(device.getmRssi(), device.getmTxPower(), device.getmDeviceCode());
-                    beacon.distanceList(beacon.getDistance());
+                    beacon.setRSSIs(beacon.getmRssi());
+                    beacon.setDistances(beacon.getDistance());
                     scannedBeacons.put(deviceName, beacon);
                 }
 
             }else{
-                //Todo: use filtered RSSI or not?
                 Log.i("2 Tag scan result", "RSSI: " + result.getRssi() + "Device " + deviceName);
                 Beacon b = scannedBeacons.get(deviceName);
                 b.setmRssi(result.getRssi());
-                double distance = Beacon.distanceMathematical(b.getmTxPower(), b.getmRssi());
-                b.distanceList(distance);
+                double distance = b.calculateDistance(b.getmTxPower(), b.getmRssi());
+                b.setRSSIs(result.getRssi());
+                b.setDistances(distance);
             }
         }
         @Override
@@ -123,6 +130,15 @@ public class ScanUtils {
             sum = sum + distance;
         }
         return (sum/b.getDistanceList().size());
+    }
+
+    public static double averageRSSI(Beacon b){
+        double sum = 0;
+        Log.i("RSSI list:", b.toString());
+        for(double rssi: b.getRSSIList()){
+            sum = sum + rssi;
+        }
+        return (sum/b.getRSSIList().size());
     }
 
 }

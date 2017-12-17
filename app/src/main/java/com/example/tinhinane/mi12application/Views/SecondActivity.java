@@ -37,9 +37,13 @@ public class SecondActivity extends AppCompatActivity {
         btnMap.setEnabled(false);
         final Button btnProximity = findViewById(R.id.btnProximity);
 
-        final Toast toast = Toast.makeText(getApplicationContext(), "Please wait while scanning beacons in the area...",
+        final Toast toastScan = Toast.makeText(getApplicationContext(), "Please wait while scanning beacons in the area...",
+                Toast.LENGTH_LONG);
+        toastScan.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER, 0, 0);
+
+        final Toast toastLocalisation = Toast.makeText(getApplicationContext(), "Please wait until the app detects at least 3 beacons in the area...",
                 Toast.LENGTH_SHORT);
-        toast.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER, 0, 0);
+        toastLocalisation.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER, 0, 0);
 
         btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,7 +54,7 @@ public class SecondActivity extends AppCompatActivity {
 
                     public void onTick(long millisUntilFinished) {
                         btnRefresh.setEnabled(false);
-                        toast.show();
+                        toastScan.show();
                     }
 
                     public void onFinish() {
@@ -70,8 +74,14 @@ public class SecondActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                //Go to basic map
-                Intent basicMapActivity = new Intent(SecondActivity.this,BasicMap.class);
-                startActivity(basicMapActivity);
+                if(ScanUtils.getListBeacons().size()>=3){
+                    Intent basicMapActivity = new Intent(SecondActivity.this,BasicMap.class);
+                    startActivity(basicMapActivity);
+                }
+                else{
+                    toastLocalisation.show();
+                }
+
             }
         });
 

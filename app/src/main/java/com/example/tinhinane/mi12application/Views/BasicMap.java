@@ -15,9 +15,7 @@ public class BasicMap extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i("onCreate Basic map", "Ok");
         ArrayList<Beacon> beacons = (ArrayList<Beacon>) ScanUtils.getListBeacons();
-        Log.i("Tag list beacons", beacons.toString());
         setContentView(new RoomDrawing(this, beacons));
     }
 

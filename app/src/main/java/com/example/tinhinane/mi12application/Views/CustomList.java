@@ -37,7 +37,6 @@ public class CustomList extends BaseAdapter {
         TextView name;
         TextView rssi;
         TextView distance;
-        ImageView img;
     }
 
     @Override
@@ -57,7 +56,6 @@ public class CustomList extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        // TODO Auto-generated method stub
         Holder holder=new Holder();
         View rowView;
         rowView = inflater.inflate(R.layout.customized_list, null);

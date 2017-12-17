@@ -18,7 +18,8 @@ import java.util.ArrayList;
  */
 
 public class RoomDrawing extends View {
-    //Origin coordinates: O(LEFT,TOP)
+    //Origin coordinates: (0,0)(TOP, LEFT)
+    //Physical width and height corresponds to the lab dimensions
     private static final double roomWidth = 5.20;//unit [m]
     private static final double roomHeight = 11.50;//unit [m]
     private static double scale = 0;
@@ -26,23 +27,40 @@ public class RoomDrawing extends View {
     public static int maxWidth;//Canvas unit
     int LEFT=0;
     int TOP=0;
+    Rect r;
     Paint paint = new Paint();
     ArrayList<Vector> positions = new ArrayList<Vector>();
     ArrayList<Double> distances = new ArrayList<Double>();
+    ArrayList<Beacon> beacons = new ArrayList<Beacon>();
     Vector userPos;
     public RoomDrawing(Context context, ArrayList<Beacon> beacons) {
         super(context);
+        this.beacons = beacons;
         for (Beacon beacon : beacons){
-            positions.add(beacon.getPos());
             distances.add(beacon.getDistance());
         }
 
     }
+    //Set beacon positions in the Canvas
+    private void beaconPosition(Beacon b){
+        Log.i("Beacon position", b.getmDeviceCode());
+        if (b.getmDeviceCode().equals("F0:F9:90:D8:07:02")) {
+            b.setPosition(new Vector(r.top, r.left, 0));
+            this.positions.add(new Vector(r.top, r.left, 0));
 
+        } else if (b.getmDeviceCode().equals("CA:29:A7:B8:6E:02")) {
+            b.setPosition(new Vector(r.top, r.right, 0));
+            this.positions.add(new Vector(r.right, 0, 0));
+        } else if (b.getmDeviceCode().equals("F4:17:02:A7:4B:02")) {
+            b.setPosition(new Vector(r.centerX(), r.centerY(), 0));
+            this.positions.add(new Vector(r.centerX(), r.centerY(), 0));
+        }
+    }
+    //Physical to canvas conversion
     public static final double scaleConvert(double physicalDistance){
         return physicalDistance*scale;
     }
-
+    //Get conversion scale
     public static final void setScale(){
         Log.i("Scale is:", Math.round(maxHeight/roomHeight)+"");
         scale = Math.round(maxHeight/roomHeight);
@@ -87,33 +105,41 @@ public class RoomDrawing extends View {
         //Fill in Rectangle
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.rgb(107, 128, 154));
-        Rect r = new Rect(TOP, LEFT, (int)scaleConvert(roomWidth), (int)scaleConvert(roomHeight));
+        r = new Rect(TOP, LEFT, (int)scaleConvert(roomWidth), (int)scaleConvert(roomHeight));
         canvas.drawRect(r, paint);
-
         //Set rectangle border
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(10);
         paint.setColor(Color.rgb(6, 34, 68));
         canvas.drawRect(r, paint);
 
+        //Get beacon positions
+        for (Beacon beacon : beacons){
+            beaconPosition(beacon);
+        }
+        //Draw beacon positions
         for (Vector v : positions){
             drawBeacon(canvas, v);
         }
         //Find user position
+        distances.set(0, 1.5);
         this.userPos = findUserPosition(positions.get(0), positions.get(1), positions.get(2), distances.get(0), distances.get(1), distances.get(2));
+        Log.i("User pos", this.userPos.toString());
         drawUserPos(canvas, this.userPos);
     }
 
     void drawBeacon(Canvas canvas, Vector v){
+        Log.i("Beacon pos", v.toString());
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.BLACK);
-        canvas.drawCircle((float)v.x,(float)v.y,10,paint);
+        paint.setColor(Color.rgb(135,206,250));
+        canvas.drawCircle((float)v.x,(float)v.y,15,paint);
     }
 
     void drawUserPos(Canvas canvas, Vector v){
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.RED);
         canvas.drawCircle((float)v.x,(float)v.y,10,paint);
+        canvas.drawText("You are here!",(float)v.x-30,(float)v.y+25, paint);
     }
 
 }

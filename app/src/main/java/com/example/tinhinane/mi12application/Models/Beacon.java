@@ -1,16 +1,8 @@
 package com.example.tinhinane.mi12application.Models;
 
-import android.util.Log;
-
-import com.example.tinhinane.mi12application.Helpers.KalmanFilter;
 import com.example.tinhinane.mi12application.Helpers.Vector;
-import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by tinhinane on 23/11/17.
@@ -20,15 +12,13 @@ public class Beacon extends BleDevice {
 
     private double distance;
     private Vector position;
-    private double filteredRssi;
     private ArrayList<Double> distances = new ArrayList<Double>();
-    static final String[] beaconIDs = {"F0:F9:90:D8:07:02", "CA:29:A7:B8:6E:02", "FD:99:39:12:E2:02"};
+    private ArrayList<Double> RSSIs = new ArrayList<Double>();
+    static final String[] beaconIDs = {"F0:F9:90:D8:07:02", "CA:29:A7:B8:6E:02", "F4:17:02:A7:4B:02"};
 
     public Beacon(double rssi, double txpower, String deviceCode) {
         super(rssi, txpower, deviceCode);
-        setFilteredRssi(rssi);
-        this.distance = distanceMathematical(txpower, rssi);
-        setPosition(deviceCode);
+        this.distance = calculateDistance(txpower, rssi);
     }
 
     public double getDistance() {
@@ -39,68 +29,51 @@ public class Beacon extends BleDevice {
         this.distance = distance;
     }
 
-    public Vector getPos() {
+    public Vector getPosition() {
         return position;
     }
 
-    public void setPosition(String name){
-
-        if (name.equals(beaconIDs[0])) {
-            this.position = new Vector(100, 100, 0);
-
-        } else if (name.equals(beaconIDs[1])) {
-            this.position = new Vector(0, 0, 0);
-
-        } else if (name.equals(beaconIDs[2])) {
-            this.position = new Vector(350, 350, 0);
-
-        } else {
-            //Error
-            this.position = new Vector(-1, -1, -1);
-            Log.i("initPos", "Not an iBeacon");
-        }
+    public void setPosition(Vector v){
+        this.position = v;
     }
 
-    public double getFilteredRssi(){
-        return this.filteredRssi;
-    }
-
-    public void setFilteredRssi(double rssi){
-        KalmanFilter kf = new KalmanFilter();
-        this.filteredRssi = kf.applyFilter(rssi);
-    }
-
-    public static double distanceMathematical(double txPower, double rssi){
+    public double calculateDistance(double txPower, double rssi){
         /*
         * n (environmental factor) = 2 (in free space)
         *
         * d = 10 ^ ((TxPower - RSSI) / (10 * n))
         */
+        double distance;
         if (rssi == 0) {
-            return -1.0; // if we cannot determine distance, return -1.
+            distance=-1.0; // if we cannot determine distance, return -1.
         }
-        double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
-        Log.i("Tag distance: ", distance + "");
+        //Distance [0-3m]
+        else if(-67<rssi && rssi <0){
+            distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
+        }
+        else if(-74<rssi && rssi<=-67){
+            distance = 3.5;
+        }
+        else if(-77<rssi && rssi<=-74){
+            distance = 4.5;
+        }
+        else if(-81<rssi && rssi<=-77){
+            distance = 6;
+        }
+        else if(-86<rssi && rssi<=-81){
+            distance = 8;
+        }
+        else if(-90<rssi && rssi<=-86){
+            distance = 10;
+        }
+        else if(-95<rssi && rssi<=-90){
+            distance = 11;
+        }
+        else{
+            distance = -1.0; //Beacon out of range
+        }
+
         return distance;
-    }
-
-    public static double distanceExperimental(double txPower, int rssi){
-
-        if (rssi == 0) {
-            return -1.0; // if we cannot determine distance, return -1.
-        }
-        //A regression equation is a polynomial regression equation if the power of independent variable is more than 1.
-        double ratio = rssi*1.0/txPower;
-        if (ratio < 1.0) {
-            Log.i("Tag distance (exp)", Math.pow(ratio,10) +"");
-            return Math.pow(ratio,10);
-        }
-
-        else {
-            double d =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
-            Log.i("Distance (exp formula)", d+"");
-            return d;
-        }
     }
 
     public static boolean isBeacon(BleDevice device){
@@ -117,7 +90,6 @@ public class Beacon extends BleDevice {
 
         } else {
             test = false;
-            Log.i("isBeacon?", "Not an iBeacon");
         }
 
         return test;
@@ -136,12 +108,17 @@ public class Beacon extends BleDevice {
         }
     }
 
-    public void distanceList(double distance){
+    public void setDistances(double distance){
         this.distances.add(distance);
     }
 
+    public void setRSSIs(double rssi){ this.RSSIs.add(rssi);}
+
     public ArrayList<Double> getDistanceList(){
         return this.distances;
+    }
+    public ArrayList<Double> getRSSIList(){
+        return this.RSSIs;
     }
 
     @Override

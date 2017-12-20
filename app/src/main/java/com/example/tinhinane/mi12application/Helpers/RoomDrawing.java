@@ -70,8 +70,6 @@ public class RoomDrawing extends View {
         scale = Math.round(maxHeight/roomHeight);
     }
 
-    //Trilateration algorithm, maths source: https://en.wikipedia.org/wiki/Trilateration
-    //v1, v2, v3 in FrameCanvas, d1, d2, d3 are also in the scale of FrameCanvas
     /**findUserPosition calculates the user position following the trilateration algorithm
      * @param v1,v2,v3 beacons positions in the frame of the Canvas
      * @param d1,d2,d3 distances between mobile and beacon converted to the scale of the Canvas

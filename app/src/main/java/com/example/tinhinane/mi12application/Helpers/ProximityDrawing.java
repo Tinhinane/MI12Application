@@ -3,6 +3,7 @@ package com.example.tinhinane.mi12application.Helpers;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorSpace;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
@@ -40,9 +41,11 @@ public class ProximityDrawing extends View {
         origin.z = 0;
         super.onDraw(canvas);
         //Draw circles
-        drawCircle(canvas, paintC1, Color.GREEN, 100, "Immediate");//Less than 1m
-        drawCircle(canvas, paintC2, Color.CYAN, 300, "Near");//Near ( 1<=d<3)
-        drawCircle(canvas, paintC3, Color.RED, (float)(maxHeight-origin.y), "Far");//Far >3m
+        drawCircle(canvas, paintC3, Color.rgb(162,239,0), (float)(maxHeight-origin.y), "Far");
+        drawCircle(canvas, paintC2, Color.rgb(3,137,156), 300, "Near");
+        drawCircle(canvas, paintC1, Color.rgb(255,7,0), 100, "Immediate");//Less than 1m
+        //Near ( 1<=d<3)
+        //Far >3m
 
         for(int i=0; i<beacons.size();i++){
             if(i < beacons.size()-1){
@@ -61,13 +64,14 @@ public class ProximityDrawing extends View {
 
     private  void drawCircle(Canvas canvas, Paint paint, int color, float radius, String text){
         //Circle
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(10);
         paint.setColor(color);
         canvas.drawCircle((float)origin.x,(float)origin.y, radius, paint);
         //Text
         paint.setStrokeWidth(2);
         paint.setTextSize(15);
+        paint.setColor(Color.BLACK);
         canvas.drawText(text, (float)origin.x-50, (float)(maxHeight-origin.y)+(radius-100), paint);
     }
 

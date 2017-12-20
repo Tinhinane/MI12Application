@@ -66,7 +66,6 @@ public class RoomDrawing extends View {
     }
     //Get conversion scale
     public static final void setScale(){
-        Log.i("Scale is:", Math.round(maxHeight/roomHeight)+"");
         scale = Math.round(maxHeight/roomHeight);
     }
 

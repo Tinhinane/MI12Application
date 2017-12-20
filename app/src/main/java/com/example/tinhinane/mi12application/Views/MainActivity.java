@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         bleScannerButton = findViewById(R.id.btnBLEScanner);
         switchBluetooth = findViewById(R.id.switchBluetooth);
         switchLocation = findViewById(R.id.switchLocation);
-        Log.i("TAG onCreate", "MI12 app is starting up");
+
         bleScannerButton.setEnabled(false);
 
         // Activate Location when the user toggles the switch button
@@ -104,13 +104,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //Activate Bluetooth switch when the bluetooth is already on
         switchBluetooth.setChecked(BluetoothHelper.getBluetoothAdapter(this).isEnabled());
         switchLocation.setChecked(LocationHelper.isLocationEnabled(this));
         bleScannerButton.setEnabled(switchBluetooth.isChecked() && switchLocation.isChecked());
-        // Register for broadcasts on BluetoothAdapter state change
-        //IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        //registerReceiver(BluetoothHelper.mBluetoothReceiver, filter);
     }
 
     private void grantPermission(){

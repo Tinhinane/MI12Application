@@ -10,6 +10,7 @@ import static android.content.Context.LOCATION_SERVICE;
 
 /**
  * Created by tinhinane on 30/11/17.
+ * Class LocationHelper enables location access
  */
 
 public class LocationHelper {

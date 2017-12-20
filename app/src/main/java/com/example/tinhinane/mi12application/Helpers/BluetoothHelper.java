@@ -8,6 +8,7 @@ import android.content.Intent;
 
 /**
  * Created by tinhinane on 30/11/17.
+ * Class BluetoothHelper enables and controls the bluetooth
  */
 
 public class BluetoothHelper {

@@ -41,17 +41,11 @@ public class ScanUtils {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Log.i("Scan","Scan stop");
-                    //(DEBUG) Remove
-                    if(getListBeacons().size() <3){
-                        Beacon beacon = new Beacon(-70, -55.5, "CA:29:A7:B8:6E:02");
-                        scannedBeacons.put("CA:29:A7:B8:6E:02", beacon);
-                    }
+                    //Stop scan
                     //Calculate avg of distances found for every beacon
                     for(Beacon b: getListBeacons()){
                         double avgDistance = averageDistance(b);
                         double avgRSSI = averageRSSI(b);
-                        Log.i("Average RSSI", avgRSSI+"");
                         b.setDistance(avgDistance);
                         b.setmRssi((int)avgRSSI);
                         b.clearDistances();
@@ -59,12 +53,11 @@ public class ScanUtils {
                     mLEScanner.stopScan(mScanCallback);
                 }
             }, SCAN_PERIOD);
-            Log.i("Scan","Scan (currently)");
+            //Start scan
             mLEScanner.startScan(mScanCallback);
         }
 
         else{
-            Log.i("Scan","End");
             mLEScanner.stopScan(mScanCallback);
         }
     }
@@ -78,7 +71,6 @@ public class ScanUtils {
             //New beacon found
             if (!scannedBeacons.containsKey(deviceName)) {
                 if(Beacon.isBeacon(device)){
-                    Log.i("1 Tag scan result", "RSSI: " + result.getRssi() + "Device " + deviceName);
                     Beacon beacon = new Beacon(device.getmRssi(), device.getmTxPower(), device.getmDeviceCode());
                     beacon.setRSSIs(beacon.getmRssi());
                     beacon.setDistances(beacon.getDistance());
@@ -86,7 +78,6 @@ public class ScanUtils {
                 }
 
             }else{
-                Log.i("2 Tag scan result", "RSSI: " + result.getRssi() + "Device " + deviceName);
                 Beacon b = scannedBeacons.get(deviceName);
                 b.setmRssi(result.getRssi());
                 double distance = b.calculateDistance(b.getmTxPower(), b.getmRssi());
@@ -126,7 +117,6 @@ public class ScanUtils {
 
     public static double averageDistance(Beacon b){
         double sum = 0;
-        Log.i("Distance list:", b.getDistanceList().toString());
         for(double distance: b.getDistanceList()){
             sum = sum + distance;
         }
@@ -135,7 +125,6 @@ public class ScanUtils {
 
     public static double averageRSSI(Beacon b){
         double sum = 0;
-        Log.i("RSSI list:", b.toString());
         for(double rssi: b.getRSSIList()){
             sum = sum + rssi;
         }

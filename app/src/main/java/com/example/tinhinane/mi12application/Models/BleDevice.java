@@ -1,7 +1,5 @@
 package com.example.tinhinane.mi12application.Models;
 
-import com.google.android.gms.maps.model.LatLng;
-
 /**
  * Created by tinhinane on 03/11/17.
  */

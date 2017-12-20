@@ -37,15 +37,20 @@ public class Beacon extends BleDevice {
         this.position = v;
     }
 
+    /**
+     * returns the distance that separates the mobile from the
+     * beacon based on the formula d = 10 ^ ((TxPower - RSSI) / (10 * n))
+     * for long distances rssi intervals are used as min and max to find
+     * the most accurate distance
+     * @param: txPower calibrated rssi value at 1m
+     * @param: rssi signal power received
+     * @return distance between the mobile and the beacon
+     * */
     public double calculateDistance(double txPower, double rssi){
-        /*
-        * n (environmental factor) = 2 (in free space)
-        *
-        * d = 10 ^ ((TxPower - RSSI) / (10 * n))
-        */
+
         double distance;
         if (rssi == 0) {
-            distance=-1.0; // if we cannot determine distance, return -1.
+            distance=-1.0; //Error
         }
         //Distance [0-3m]
         else if(-70<rssi && rssi <0){
@@ -70,12 +75,16 @@ public class Beacon extends BleDevice {
             distance = 11;
         }
         else{
-            distance = -1.0; //Beacon out of range
+            distance = -1.0; //Out of range
         }
 
         return distance;
     }
-
+    /**
+     * Gets a BLE device and checks if it is a beacon
+     * @param device a BLE device
+     * @return boolean true if device is a beacon, otherwise false
+     * */
     public static boolean isBeacon(BleDevice device){
 
         boolean test;
@@ -100,7 +109,7 @@ public class Beacon extends BleDevice {
         if(b.getDistance() < 1){
             return 0; //Immediate zone
         }
-        else if(b.getDistance()>1 && b.getDistance() <3){
+        else if(b.getDistance()>1 && b.getDistance() <=3){
             return 1; //Near zone
         }
         else{

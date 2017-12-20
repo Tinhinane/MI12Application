@@ -15,11 +15,15 @@ import java.util.ArrayList;
 
 /**
  * Created by tinhinane on 02/12/17.
+ * RoomDrawing class is used to draw the canvas where the
+ * beacons and user are position.
+ * Canvas represents the lab room.
+ * Physical width and length represents the real lab dimensions
+ * Origin coordinates (0,0): (TOP, LEFT) of the Canvas
  */
 
 public class RoomDrawing extends View {
-    //Origin coordinates: (0,0)(TOP, LEFT)
-    //Physical width and height corresponds to the lab dimensions
+
     private static final double roomWidth = 5.20;//unit [m]
     private static final double roomHeight = 11.50;//unit [m]
     private static double scale = 0;
@@ -68,6 +72,11 @@ public class RoomDrawing extends View {
 
     //Trilateration algorithm, maths source: https://en.wikipedia.org/wiki/Trilateration
     //v1, v2, v3 in FrameCanvas, d1, d2, d3 are also in the scale of FrameCanvas
+    /**findUserPosition calculates the user position following the trilateration algorithm
+     * @param v1,v2,v3 beacons positions in the frame of the Canvas
+     * @param d1,d2,d3 distances between mobile and beacon converted to the scale of the Canvas
+     * @return Vector that represents the position of the user in the room
+     ***/
     public static Vector findUserPosition(Vector v1, Vector v2, Vector v3, double d1, double d2, double d3){
         d1 = scaleConvert(d1);
         d2 = scaleConvert(d2);
@@ -122,14 +131,11 @@ public class RoomDrawing extends View {
             drawBeacon(canvas, v);
         }
         //Find user position
-        distances.set(0, 1.5);
         this.userPos = findUserPosition(positions.get(0), positions.get(1), positions.get(2), distances.get(0), distances.get(1), distances.get(2));
-        Log.i("User pos", this.userPos.toString());
         drawUserPos(canvas, this.userPos);
     }
 
     void drawBeacon(Canvas canvas, Vector v){
-        Log.i("Beacon pos", v.toString());
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.rgb(135,206,250));
         canvas.drawCircle((float)v.x,(float)v.y,15,paint);

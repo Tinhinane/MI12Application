@@ -31,7 +31,6 @@ public class SecondActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
-        Log.i("Tag SECOND", "Second Activity");
         final Button btnRefresh = findViewById(R.id.btnRefresh);
         final Button btnMap = findViewById(R.id.btnMap);
         btnMap.setEnabled(false);

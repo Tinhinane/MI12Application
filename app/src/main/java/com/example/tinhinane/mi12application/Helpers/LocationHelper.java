@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
+import android.util.Log;
 
 import static android.content.Context.LOCATION_SERVICE;
 
@@ -14,6 +15,7 @@ import static android.content.Context.LOCATION_SERVICE;
  */
 
 public class LocationHelper {
+
     public static boolean isLocationEnabled(Context context){
         LocationManager lm = (LocationManager) context.getSystemService(LOCATION_SERVICE);
         if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
@@ -30,4 +32,5 @@ public class LocationHelper {
         }
         return true;
     }
+
 }

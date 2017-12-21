@@ -82,19 +82,19 @@ public class ProximityDrawing extends View {
         float d = (float)distance*100;
         if(d>(maxHeight-origin.y)){
             if(!closeness){
-                canvas.drawText(text,(float)origin.x+15,(float)origin.y+650, paintC3);
-                canvas.drawCircle((float)origin.x,(float)maxHeight-10,15,paintC3);
+                canvas.drawText(text,(float)origin.x,(float)maxHeight-45, paintC3);
+                canvas.drawCircle((float)origin.x,(float)maxHeight-50,15,paintC3);
             }else{
-                canvas.drawText(text,(float)origin.x-25,(float)origin.y+650, paintC3);
-                canvas.drawCircle((float)origin.x-40,(float)maxHeight-10,15,paintC3);
+                canvas.drawText(text,(float)origin.x-40,(float)maxHeight-55, paintC3);
+                canvas.drawCircle((float)origin.x-40,(float)maxHeight-40,15,paintC3);
             }
         }
         else{
             if(!closeness){
-                canvas.drawText(text,(float)origin.x+15,(float)origin.y+d, paintC3);
+                canvas.drawText(text,(float)origin.x,(float)origin.y+d+30, paintC3);
                 canvas.drawCircle((float)origin.x,(float)origin.y+d,15,paintC3);
             }else{
-                canvas.drawText(text,(float)origin.x-25,(float)origin.y+d, paintC3);
+                canvas.drawText(text,(float)origin.x-40,(float)origin.y+d+30, paintC3);
                 canvas.drawCircle((float)origin.x-40,(float)origin.y+d,15,paintC3);
             }
         }

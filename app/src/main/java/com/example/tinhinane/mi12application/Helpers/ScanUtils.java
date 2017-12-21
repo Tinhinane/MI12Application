@@ -22,7 +22,7 @@ import java.util.Set;
  */
 
 public class ScanUtils {
-    public static final long SCAN_PERIOD = 30000;//[ms]
+    public static final long SCAN_PERIOD = 25000;//[ms]
     private static final double TxPower = -55.5;//[dBm]
     private static Handler mHandler;
     private static BluetoothLeScanner mLEScanner;

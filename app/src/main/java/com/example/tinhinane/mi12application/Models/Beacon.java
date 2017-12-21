@@ -53,14 +53,14 @@ public class Beacon extends BleDevice {
             distance=-1.0; //Error
         }
         //Distance [0-3m]
-        else if(-70<rssi && rssi <0){
+        else if(-70<=rssi && rssi <0){
             distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
         }
-        else if(-74<rssi && rssi<=-70){
-            distance = 3.5;
+        else if(-74<rssi && rssi<-70){
+            distance = 3;
         }
         else if(-77<rssi && rssi<=-74){
-            distance = 4.5;
+            distance = 4;
         }
         else if(-81<rssi && rssi<=-77){
             distance = 6;

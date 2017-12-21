@@ -1,24 +1,17 @@
 package com.example.tinhinane.mi12application.Views;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.tinhinane.mi12application.Helpers.ScanUtils;
-import com.example.tinhinane.mi12application.Models.Beacon;
 import com.example.tinhinane.mi12application.R;
-
-import java.util.ArrayList;
 
 /**
  * List BLE devices.
